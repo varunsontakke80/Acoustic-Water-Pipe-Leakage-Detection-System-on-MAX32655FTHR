@@ -1,4 +1,4 @@
-// This is a generated file that's used to detect definitions that have been set by the compiler and build system.
+"// This is a generated file that's used to detect definitions that have been set by the compiler and build system." 
 #define __STDC__ 1
 #define __STDC_VERSION__ 201710L
 #define __STDC_UTF_16__ 1

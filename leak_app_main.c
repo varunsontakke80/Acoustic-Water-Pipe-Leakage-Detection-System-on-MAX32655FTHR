@@ -231,15 +231,7 @@ static uint8_t leakWpWriteCback(dmConnId_t connId, uint16_t handle, uint8_t oper
     } else if (strncmp(cmd, "CAL", 3) == 0) {
         LeakDetector_StartCalibration(20);
         LeakAppSendTelemetry("[CMD] Baseline calibration started (20s)\r\n");
-    } else if (strncmp(cmd, "LEAK", 4) == 0 || strncmp(cmd, "TEST", 4) == 0) {
-        Audio_Mic_InjectLeakSignal(true);
-        LeakAppSendTelemetry("[CMD] Simulating high-pressure pipe leak vibration...\r\n");
-    } else if (strncmp(cmd, "STOP", 4) == 0 || strncmp(cmd, "NORM", 4) == 0) {
-        Audio_Mic_InjectLeakSignal(false);
-        LeakDetector_ResetAlarm();
-        LeakAppSendTelemetry("[CMD] Simulation stopped. Returned to normal baseline\r\n");
     } else if (strncmp(cmd, "RST", 3) == 0) {
-        Audio_Mic_InjectLeakSignal(false);
         LeakDetector_ResetAlarm();
         LeakAppSendTelemetry("[CMD] Alarm latch cleared. State: NORMAL\r\n");
     } else if (strncmp(cmd, "THR=", 4) == 0) {
@@ -261,7 +253,7 @@ static uint8_t leakWpWriteCback(dmConnId_t connId, uint16_t handle, uint8_t oper
                  (unsigned int)m.severity_pct, (unsigned int)m.confidence_pct);
         LeakAppSendTelemetry(resp);
     } else {
-        LeakAppSendTelemetry("[CMD] Commands: MIC_INT, MIC_EXT, LEAK, STOP, CAL, RST, THR=xxx, STAT\r\n");
+        LeakAppSendTelemetry("[CMD] Commands: MIC_INT, MIC_EXT, CAL, RST, THR=xxx, STAT\r\n");
     }
 
     return ATT_SUCCESS;
@@ -269,8 +261,9 @@ static uint8_t leakWpWriteCback(dmConnId_t connId, uint16_t handle, uint8_t oper
 
 static terminalCommand_t s_termCmdMicInt;
 static terminalCommand_t s_termCmdMicExt;
-static terminalCommand_t s_termCmdLeak;
-static terminalCommand_t s_termCmdStop;
+static terminalCommand_t s_termCmdCal;
+static terminalCommand_t s_termCmdStat;
+static terminalCommand_t s_termCmdRst;
 
 static uint8_t termCmdMicInt(uint32_t argc, char **argv)
 {
@@ -296,18 +289,29 @@ static uint8_t termCmdMicExt(uint32_t argc, char **argv)
     return TERMINAL_ERROR_OK;
 }
 
-static uint8_t termCmdLeak(uint32_t argc, char **argv)
+static uint8_t termCmdCal(uint32_t argc, char **argv)
 {
-    Audio_Mic_InjectLeakSignal(true);
-    TerminalTxStr("[CMD] Simulating high-pressure pipe leak vibration...\r\n");
+    LeakDetector_StartCalibration(20);
+    TerminalTxStr("[CMD] Baseline calibration started for 20 frames...\r\n");
     return TERMINAL_ERROR_OK;
 }
 
-static uint8_t termCmdStop(uint32_t argc, char **argv)
+static uint8_t termCmdStat(uint32_t argc, char **argv)
 {
-    Audio_Mic_InjectLeakSignal(false);
+    leak_metrics_t m;
+    LeakDetector_GetMetrics(&m);
+    TerminalTxPrint("[STAT][%s] Leak:%s RMS:%u Base:%u Thr:%u Sev:%u%% Conf:%u%%\r\n",
+                    Audio_Mic_GetSourceName(),
+                    m.leak_detected ? "YES" : "NO", (unsigned int)m.rms,
+                    (unsigned int)m.baseline_rms, (unsigned int)m.threshold_rms,
+                    (unsigned int)m.severity_pct, (unsigned int)m.confidence_pct);
+    return TERMINAL_ERROR_OK;
+}
+
+static uint8_t termCmdRst(uint32_t argc, char **argv)
+{
     LeakDetector_ResetAlarm();
-    TerminalTxStr("[CMD] Simulation stopped. Returned to normal baseline\r\n");
+    TerminalTxStr("[CMD] Alarm latch cleared. State: NORMAL\r\n");
     return TERMINAL_ERROR_OK;
 }
 
@@ -436,26 +440,17 @@ static void leakProcMsg(dmEvt_t *pMsg)
 }
 
 /*************************************************************************************************/
-static bool s_sim_leak_active = false;
-
 static void leakBtnCback(uint8_t btn)
 {
-    /* Button 1 (SW3) short press toggles simulated pipe leak for easy verification */
-    if (btn == APP_UI_BTN_1_SHORT) {
-        s_sim_leak_active = !s_sim_leak_active;
-        Audio_Mic_InjectLeakSignal(s_sim_leak_active);
-        if (s_sim_leak_active) {
-            TerminalTxStr("\r\n>>> [BUTTON SW3] TEST LEAK SIMULATION TRIGGERED! <<<\r\n");
-            LeakAppSendTelemetry("[BTN] SW3: TEST LEAK TRIGGERED\r\n");
-        } else {
-            TerminalTxStr("\r\n>>> [BUTTON SW3] TEST LEAK STOPPED (NORMAL PIPE) <<<\r\n");
-            LeakDetector_ResetAlarm();
-            LeakAppSendTelemetry("[BTN] SW3: Test Leak Stopped\r\n");
-        }
-    } else if (btn == APP_UI_BTN_2_SHORT) {
-        TerminalTxStr("\r\n>>> [BUTTON SW4] Recalibrating outdoor baseline... <<<\r\n");
+    /* Onboard Switch SW3 / Button 2 triggers normal flow baseline calibration */
+    if (btn == APP_UI_BTN_2_SHORT || btn == APP_UI_BTN_1_SHORT) {
+        TerminalTxStr("\r\n>>> [BUTTON SW3] Calibrating normal flow baseline... <<<\r\n");
         LeakDetector_StartCalibration(20);
-        LeakAppSendTelemetry("[BTN] Calibrating outdoor baseline (20s)...\r\n");
+        LeakAppSendTelemetry("[BTN] Calibrating normal flow baseline (20s)...\r\n");
+    } else if (btn == APP_UI_BTN_1_MED || btn == APP_UI_BTN_2_MED) {
+        TerminalTxStr("\r\n>>> [BUTTON] Resetting alarm latch to normal... <<<\r\n");
+        LeakDetector_ResetAlarm();
+        LeakAppSendTelemetry("[BTN] Alarm reset\r\n");
     }
 }
 
@@ -550,7 +545,6 @@ void LeakAppHandler(wsfEventMask_t event, wsfMsgHdr_t *pMsg)
 
             /* 3. Output to UART0 Console (115200 8-N-1) */
             TerminalTxStr(telem);
-            printf("%s", telem);
 
             /* 4. Stream to connected Phone via BLE Notification */
             LeakAppSendTelemetry(telem);
@@ -617,17 +611,23 @@ void LeakAppStart(void)
     s_termCmdMicExt.handler = termCmdMicExt;
     TerminalRegisterCommand(&s_termCmdMicExt);
 
-    s_termCmdLeak.pNext = NULL;
-    s_termCmdLeak.pName = "leak";
-    s_termCmdLeak.pHelpStr = "Inject simulated water pipe leak";
-    s_termCmdLeak.handler = termCmdLeak;
-    TerminalRegisterCommand(&s_termCmdLeak);
+    s_termCmdCal.pNext = NULL;
+    s_termCmdCal.pName = "cal";
+    s_termCmdCal.pHelpStr = "Calibrate normal water flow baseline";
+    s_termCmdCal.handler = termCmdCal;
+    TerminalRegisterCommand(&s_termCmdCal);
 
-    s_termCmdStop.pNext = NULL;
-    s_termCmdStop.pName = "stop";
-    s_termCmdStop.pHelpStr = "Stop simulated leak and return to baseline";
-    s_termCmdStop.handler = termCmdStop;
-    TerminalRegisterCommand(&s_termCmdStop);
+    s_termCmdStat.pNext = NULL;
+    s_termCmdStat.pName = "stat";
+    s_termCmdStat.pHelpStr = "Display instantaneous acoustic DSP metrics";
+    s_termCmdStat.handler = termCmdStat;
+    TerminalRegisterCommand(&s_termCmdStat);
+
+    s_termCmdRst.pNext = NULL;
+    s_termCmdRst.pName = "rst";
+    s_termCmdRst.pHelpStr = "Reset acoustic leak alarm latch to normal";
+    s_termCmdRst.handler = termCmdRst;
+    TerminalRegisterCommand(&s_termCmdRst);
 
     WsfNvmInit();
 

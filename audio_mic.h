@@ -64,12 +64,6 @@ int Audio_Mic_CaptureFrame(int16_t *out_buf, uint32_t num_samples);
 int Audio_Mic_Test(audio_mic_source_t source, int16_t *min_val, int16_t *max_val, uint32_t *rms_val, bool *hw_active);
 
 /**
- * @brief  Inject or clear simulated pipe leak acoustic signal for testing.
- * @param  inject  true to simulate high-pressure leak sound, false for baseline.
- */
-void Audio_Mic_InjectLeakSignal(bool inject);
-
-/**
  * @brief  Power off codec and microphone to save power.
  */
 void Audio_Mic_Shutdown(void);

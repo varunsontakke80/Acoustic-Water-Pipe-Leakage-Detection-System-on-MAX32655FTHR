@@ -89,6 +89,13 @@ void setAdvTxPower(void)
 }
 
 /*************************************************************************************************/
+static bool_t dummyTraceHandler(const uint8_t *pBuf, uint32_t len)
+{
+    (void)pBuf;
+    (void)len;
+    return TRUE;
+}
+
 static void mainWsfInit(void)
 {
 #if defined(HCI_TR_EXACTLE) && (HCI_TR_EXACTLE == 1)
@@ -112,8 +119,8 @@ static void mainWsfInit(void)
     WsfOsInit();
     WsfTimerInit();
 #if (WSF_TOKEN_ENABLED == TRUE) || (WSF_TRACE_ENABLED == TRUE)
-    WsfTraceRegisterHandler(WsfBufIoWrite);
-    WsfTraceEnable(TRUE);
+    WsfTraceRegisterHandler(dummyTraceHandler);
+    WsfTraceEnable(FALSE);
 #endif
 }
 
@@ -122,11 +129,12 @@ int main(void)
 {
     /* 1. Initialize Board Support Package (GPIOs, console UART0, LEDs, buttons) */
     Board_Init();
+    Console_Init();
     MXC_ICC_Enable(MXC_ICC0);
 
     printf("\n=========================================================\n");
     printf("   MAX32655FTHR Water Pipe Leakage Detection System\n");
-    printf("   Acoustic MEMS Mic + DSP + Cordio BLE (LightBlue)\n");
+    printf("   Knowles SPH0644 MEMS Mic + MAX9867 Codec + Edge DSP\n");
     printf("=========================================================\n");
 
 #if defined(HCI_TR_EXACTLE) && (HCI_TR_EXACTLE == 1)
@@ -195,14 +203,10 @@ int main(void)
 
     TerminalTxStr("\r\n=========================================================\r\n");
     TerminalTxStr("   MAX32655FTHR Water Pipe Leakage Detection System\r\n");
-    TerminalTxStr("   Dual Microphone: Internal MEMS & External Line-In\r\n");
-    TerminalTxStr("   Acoustic DSP + Cordio BLE (LightBlue Serial)\r\n");
+    TerminalTxStr("   Knowles SPH0644 MEMS Mic + MAX9867 Codec + Edge DSP\r\n");
     TerminalTxStr("=========================================================\r\n");
-    TerminalTxStr("[SYS] Bluetooth Advertising started as 'PIPE_LEAK_DET'\r\n");
-    TerminalTxPrint("[SYS] Bluetooth BD Address: %02X:%02X:%02X:%02X:%02X:%02X\r\n",
-                    bdAddr[5], bdAddr[4], bdAddr[3], bdAddr[2], bdAddr[1], bdAddr[0]);
-    TerminalTxStr("[SYS] Open LightBlue app on phone -> connect to 'PIPE_LEAK_DET'\r\n");
-    TerminalTxStr("[SYS] BLE Commands: MIC_INT, MIC_EXT, LEAK, STOP, CAL, RST, STAT\r\n");
+    TerminalTxStr("[SYS] Console Commands: mic_int, mic_ext, cal, stat, rst\r\n");
+    TerminalTxStr("[SYS] Hardware Controls: SW3 = Calibrate Normal Flow Baseline\r\n");
     TerminalTxStr("[SYS] Monitoring acoustic pipe vibration on COM11 (115200 8-N-1)...\r\n");
 
     /* 5. Enter cooperative WSF main loop */
