@@ -1,0 +1,31 @@
+C:/MaximSDK/Examples/MAX32655/Water_Leak_Detection_Project/build/max9867.o: \
+ max9867.c max9867.h \
+ C:/MaximSDK/Libraries/CMSIS/Device/Maxim/MAX32655/Include/i2c_regs.h \
+ c:\maximsdk\tools\gnutools\10.3\lib\gcc\arm-none-eabi\10.3.1\include\stdint.h \
+ c:\maximsdk\tools\gnutools\10.3\arm-none-eabi\include\stdint.h \
+ c:\maximsdk\tools\gnutools\10.3\arm-none-eabi\include\machine\_default_types.h \
+ c:\maximsdk\tools\gnutools\10.3\arm-none-eabi\include\sys\features.h \
+ c:\maximsdk\tools\gnutools\10.3\arm-none-eabi\include\_newlib_version.h \
+ c:\maximsdk\tools\gnutools\10.3\arm-none-eabi\include\sys\_intsup.h \
+ c:\maximsdk\tools\gnutools\10.3\arm-none-eabi\include\sys\_stdint.h \
+ C:/MaximSDK/Libraries/PeriphDrivers/Include/MAX32655/i2c.h \
+ c:\maximsdk\tools\gnutools\10.3\lib\gcc\arm-none-eabi\10.3.1\include\stdbool.h \
+ C:/MaximSDK/Libraries/PeriphDrivers/Include/MAX32655/mxc_sys.h \
+ C:/MaximSDK/Libraries/PeriphDrivers/Include/MAX32655/mxc_device.h \
+ C:/MaximSDK/Libraries/CMSIS/Device/Maxim/MAX32655/Include/max32655.h \
+ C:/MaximSDK/Libraries/CMSIS/5.9.0/Core/Include/core_cm4.h \
+ C:/MaximSDK/Libraries/CMSIS/5.9.0/Core/Include/cmsis_version.h \
+ C:/MaximSDK/Libraries/CMSIS/5.9.0/Core/Include/cmsis_compiler.h \
+ C:/MaximSDK/Libraries/CMSIS/5.9.0/Core/Include/cmsis_gcc.h \
+ C:/MaximSDK/Libraries/CMSIS/5.9.0/Core/Include/mpu_armv7.h \
+ C:/MaximSDK/Libraries/CMSIS/Device/Maxim/MAX32655/Include/system_max32655.h \
+ C:/MaximSDK/Libraries/PeriphDrivers/Include/MAX32655/mxc_errors.h \
+ C:/MaximSDK/Libraries/PeriphDrivers/Include/MAX32655/mxc_pins.h \
+ C:/MaximSDK/Libraries/PeriphDrivers/Include/MAX32655/gpio.h \
+ C:/MaximSDK/Libraries/CMSIS/Device/Maxim/MAX32655/Include/gpio_regs.h \
+ C:/MaximSDK/Libraries/CMSIS/Device/Maxim/MAX32655/Include/gcr_regs.h \
+ C:/MaximSDK/Libraries/CMSIS/Device/Maxim/MAX32655/Include/lpgcr_regs.h \
+ C:/MaximSDK/Libraries/CMSIS/Device/Maxim/MAX32655/Include/dma_regs.h \
+ C:/MaximSDK/Libraries/PeriphDrivers/Include/MAX32655/mxc_device.h \
+ C:/MaximSDK/Libraries/PeriphDrivers/Include/MAX32655/mxc_delay.h \
+ c:\maximsdk\tools\gnutools\10.3\lib\gcc\arm-none-eabi\10.3.1\include\stddef.h
